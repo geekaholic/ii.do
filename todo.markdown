@@ -12,11 +12,11 @@
 * Go bowling
 
 ## Excercise
-* Go to gym at least 3 days a week
+* ! Go to gym at least 3 days a week
 * Play some wii sports
 
 # Home Work
 
-* Finish tutorial for Maths assignment
-* Finish history essay
+* (2) Finish tutorial for Maths assignment
+* (1) Finish history essay
 

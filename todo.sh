@@ -13,6 +13,8 @@ COLOR1='\033[0;35m'	# Purple for H1
 COLOR2='\033[1;35m'	# Light Purple for H2
 COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[1;32m'	# Light green
+COLOR_IMPORTANT='\033[0;31m' # Red
+COLOR_PRIORITY='\033[1;31m' # Light Red
 
 # Get a list of todos for a given heading else show all
 function get_todo_list() {
@@ -34,16 +36,11 @@ function get_todo_list() {
 		# Display heading and subheadings
 		print_heading "$heading" "$heading_level"
 
-		echo -e "$(
 			sed -n "/^[ ]*$H1\{1,$heading_level\}[ ]*$heading/, /^$H1\{1,$heading_level\}[ ]/p" $TODO_FILE | grep -v "^$H1\{1,$heading_level\}[ ]\+" \
-			| sed "s/#\(.*\)/\\${COLOR1}#\1\\${COLOR0}/" \
-			| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/"  \
-			| sed "s/\ x \(.*\)/\\${COLOR_DONE} x \1\\${COLOR0}/"
-
-		)"
+			| colorize
 	else
 		# Display everything!
-		cat $TODO_FILE
+		cat $TODO_FILE | colorize
 	fi
 }
 
@@ -65,6 +62,18 @@ function print_heading() {
 	echo "$ph_heading"
 
 	echo -e "$COLOR0"
+}
+
+function colorize() {
+
+	while read INP
+	do
+		echo -e "$(echo "$INP" | sed "s/#\(.*\)/\\${COLOR1}#\1\\${COLOR0}/" \
+		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/" \
+		| sed "s/\ x \(.*\)/\\${COLOR_DONE} x \1\\${COLOR0}/" \
+		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/")"
+
+	done
 }
 
 get_todo_list "$1"
