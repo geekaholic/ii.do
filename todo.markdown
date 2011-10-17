@@ -2,7 +2,7 @@
 # Weekly Activities
 
 * Wash the Car
-* Take out the trash
+* x Take out the trash
 * Wash Cloths
 * Clean the Room
 * Read a Chapter of from a Book
