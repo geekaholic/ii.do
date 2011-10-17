@@ -8,7 +8,6 @@ TODO_FILE='todo.markdown'
 
 # Predefined constants
 H1='#'
-H2='##'
 
 # Get a list of todos for a given heading else show all
 function get_todo_list() {
@@ -17,25 +16,37 @@ function get_todo_list() {
 
 
 	# Figure out level of heading 
-	if  echo $heading | grep -q "$H2"; then
+	if  echo $heading | grep -q "$H1$H1"; then
 		heading_level='2'
-		heading_level_char="$H2"
 	else
 		heading_level='1'
-		heading_level_char="$H1"
 	fi 
 
 	# Cleanup heading by removing level character
-	heading=$(echo $heading|sed "s/$heading_level_char//")
+	heading=$(echo $heading|sed "s/$H1\{1,$heading_level\}//")
 
 	if [ "$heading" ]; then
 		# Display heading and subheadings
-		echo "$heading_level_char $heading"
-		sed -n "/^[ ]*$heading_level_char[ ]*$heading/, /^$heading_level_char[ ]/p" $TODO_FILE | grep -v "^$heading_level_char[ ]\+"
+		print_heading "$heading" "$heading_level"
+		sed -n "/^[ ]*$H1\{1,$heading_level\}[ ]*$heading/, /^$H1\{1,$heading_level\}[ ]/p" $TODO_FILE | grep -v "^$H1\{1,$heading_level\}[ ]\+"
 	else
 		# Display everything!
 		cat $TODO_FILE
 	fi
+}
+
+# Print heading 
+function print_heading() {
+	ph_heading="$1"
+	ph_heading_level="$2"
+
+	# Assume heading level 1 if none passed
+	if [ ! "$ph_heading_level" ]; then
+		$ph_heading_level='1'
+	fi
+
+	for i in $(seq $ph_heading_level); do echo -n "$H1"; done
+	echo "$ph_heading"
 }
 
 get_todo_list "$1"

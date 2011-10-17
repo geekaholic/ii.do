@@ -11,6 +11,10 @@
 * Watch a Movie
 * Go bowling
 
+## Excercise
+* Go to gym at least 3 days a week
+* Play some wii sports
+
 # Home Work
 
 * Finish tutorial for Maths assignment
