@@ -4,9 +4,9 @@
 # Author : Buddhika Siddhisena <bud@thinkcube.com>
 # License : GPL v2
 
-TODO_FILE='todo.markdown'
 
 # Predefined constants
+TODO_FILE="$HOME/todo.markdown"
 H1='#'
 COLOR0='\033[0m'	# Reset colors
 COLOR1='\033[0;35m'	# Purple for H1
@@ -15,6 +15,38 @@ COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[1;32m'	# Light green
 COLOR_IMPORTANT='\033[0;31m' # Red
 COLOR_PRIORITY='\033[1;31m' # Light Red
+
+# Get options
+while getopts ":f:" opt; do
+	case $opt in
+		f ) 
+			if [ -f "$OPTARG" ];then
+				# Replace with -f file 
+				TODO_FILE="$OPTARG"
+			else
+				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+				exit 1
+			fi
+			shift 
+			;;
+		\? )
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+
+		: )
+			echo "Option -$OPTARG requires an argument">&2
+			exit 1
+			;;
+	esac
+	shift 
+done
+
+# Check if todo file exists
+if [ ! -f "$TODO_FILE" ];then
+	echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+	exit 1
+fi
 
 # Get a list of todos for a given heading else show all
 function get_todo_list() {
