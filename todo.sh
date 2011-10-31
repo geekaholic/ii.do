@@ -17,6 +17,7 @@ ACTION='ls'		# Default action is to List tasks
 H1='#'
 COLOR0='\033[0m'	# Reset colors
 COLOR_H1='\033[4;35m'	# Purple for H1
+COLOR_H2='\033[1;35m'	# Purple for H2
 COLOR2='\033[1;35m'	# Light Purple for H2
 COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[9;37m'	# Light gray
@@ -99,23 +100,20 @@ function print_heading() {
 		$ph_heading_level='1'
 	fi
 
-	# Set heading color
-	heading_color="COLOR$ph_heading_level"
-	echo -e "${!heading_color}"
-
+	# Print heading level 
 	for i in $(seq $ph_heading_level); do echo -n "$H1"; done
 	echo "$ph_heading"
-
-	echo -e "$COLOR0"
 }
 
 function colorize() {
 
 	while read INP
 	do
-		echo -e "$(echo "$INP" | sed "s/#\(.*\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
+		echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
+		| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
 		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/" \
 		| sed "s/\ x \(.*\)/\\${COLOR_DONE} x \1\\${COLOR0}/" \
+		| sed "s/\ \((.*).*\)/\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
 		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/")"
 
 	done
@@ -125,7 +123,8 @@ function colorize() {
 case "$ACTION" in
 
 	ls )
-		get_todo_list "$1"
+		#get_todo_list "$1"
+		get_todo_list
 	;;
 
 	ed )
