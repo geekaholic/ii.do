@@ -7,6 +7,13 @@
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
+
+if [ ! $EDITOR ]; then
+	EDITOR='vi'	# Default editor if unspecified
+fi
+
+ACTION='ls'		# Default action is to List tasks
+
 H1='#'
 COLOR0='\033[0m'	# Reset colors
 COLOR1='\033[0;35m'	# Purple for H1
@@ -17,7 +24,7 @@ COLOR_IMPORTANT='\033[0;31m' # Red
 COLOR_PRIORITY='\033[1;31m' # Light Red
 
 # Get options
-while getopts ":f:" opt; do
+while getopts ":f:e" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -29,6 +36,12 @@ while getopts ":f:" opt; do
 			fi
 			shift 
 			;;
+
+		e )
+			# Edit todo
+			ACTION='ed'
+			;;
+
 		\? )
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1
@@ -108,4 +121,16 @@ function colorize() {
 	done
 }
 
-get_todo_list "$1"
+# Take action
+case "$ACTION" in
+
+	ls )
+		get_todo_list "$1"
+	;;
+
+	ed )
+		$EDITOR $TODO_FILE
+	;;
+
+
+esac
