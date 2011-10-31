@@ -34,27 +34,32 @@ The result is a simple `todo.markdown` file which you can easily create in your 
 ```
 
 4. Mark a task as important by preceding it with a '!'
+
 ```
 * ! Task 1 is very important
 ```
 
 5. Define a priority as either a letter or number in front of task
+
 ```
 * (1) Do Task 1 first
 * (2) Then do Task 2
 ```
 
 6. To view tasks from anywhere define an alias in your ~/.bash_profile
+
 ```
 alias t='~/Downloads/ii.do/iido'
 ```
 
 7. To use a different todo file use the -f option with full path to the file.
+
 ```
 alias t='~/Downloads/ii.do/iido -f ~/Documents/todo.md'
 ```
 
 8. To quickly launch the editor (vi by default, else $EDITOR) and edit the todo file
+
 ```
 t -e
 ```
