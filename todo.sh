@@ -16,12 +16,12 @@ ACTION='ls'		# Default action is to List tasks
 
 H1='#'
 COLOR0='\033[0m'	# Reset colors
-COLOR1='\033[0;35m'	# Purple for H1
+COLOR_H1='\033[4;35m'	# Purple for H1
 COLOR2='\033[1;35m'	# Light Purple for H2
 COLOR_DOT='\033[1;33m'	# Yellow for bullets
-COLOR_DONE='\033[1;32m'	# Light green
-COLOR_IMPORTANT='\033[0;31m' # Red
-COLOR_PRIORITY='\033[1;31m' # Light Red
+COLOR_DONE='\033[9;37m'	# Light gray
+COLOR_IMPORTANT='\033[1;31m' # Red for important
+COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
 
 # Get options
 while getopts ":f:e" opt; do
@@ -113,7 +113,7 @@ function colorize() {
 
 	while read INP
 	do
-		echo -e "$(echo "$INP" | sed "s/#\(.*\)/\\${COLOR1}#\1\\${COLOR0}/" \
+		echo -e "$(echo "$INP" | sed "s/#\(.*\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/" \
 		| sed "s/\ x \(.*\)/\\${COLOR_DONE} x \1\\${COLOR0}/" \
 		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/")"
