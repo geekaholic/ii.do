@@ -46,7 +46,7 @@ The result is a simple `todo.markdown` file which you can easily create in your 
 * (2) Then do Task 2
 ```
 
-6) To view tasks from anywhere define an alias in your ~/.bash_profile
+6) To view tasks from anywhere define an alias in your ~/.bash_profile or ~/.bashrc
 
 ```
 alias t='~/Downloads/ii.do/iido'
@@ -55,7 +55,7 @@ alias t='~/Downloads/ii.do/iido'
 7) To use a different todo file use the -f option with full path to the file.
 
 ```
-alias t='~/Downloads/ii.do/iido -f ~/Documents/todo.md'
+alias t='~/Downloads/ii.do/iido -f ~/Dropbox/todo.md'
 ```
 
 8) To quickly launch the editor (vi by default, else $EDITOR) and edit the todo file
