@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MyTODO : A simple app which renders a TODO list written using Markdown syntax
+# ii.do : A simple script which renders a TODO list written using Markdown syntax
 # Author : Buddhika Siddhisena <bud@thinkcube.com>
 # License : GPL v2
 
