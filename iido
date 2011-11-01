@@ -127,6 +127,7 @@ case "$ACTION" in
 
 	ls )
 		#get_todo_list "$1"
+		clear
 		get_todo_list
 	;;
 
