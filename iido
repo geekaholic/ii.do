@@ -36,7 +36,6 @@ while getopts ":f:e" opt; do
 				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
 				exit 1
 			fi
-			shift 
 			;;
 
 		e )
@@ -54,7 +53,6 @@ while getopts ":f:e" opt; do
 			exit 1
 			;;
 	esac
-	shift 
 done
 
 # Check if todo file exists
