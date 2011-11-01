@@ -23,6 +23,7 @@ COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[9;37m'	# Light gray
 COLOR_IMPORTANT='\033[1;31m' # Red for important
 COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
+COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
 while getopts ":f:e" opt; do
@@ -107,14 +108,18 @@ function print_heading() {
 
 function colorize() {
 
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
 	while read INP
 	do
 		echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 		| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
-		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/" \
-		| sed "s/\ x \(.*\)/\\${COLOR_DONE} x \1\\${COLOR0}/" \
-		| sed "s/\ \((.*).*\)/\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
-		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/")"
+		| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
+		| sed "s/^\*${SP}\((.*).*\)/*\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
+		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/" \
+		| sed "s/\([\`]\{1,\}.*[\`]\{1,\}\)/\\${COLOR_EM}\1\\${COLOR0}/" \
+		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/")"
+
 
 	done
 }
