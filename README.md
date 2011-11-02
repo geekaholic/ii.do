@@ -63,6 +63,17 @@ alias t='~/Downloads/ii.do/iido -f ~/Dropbox/todo.md'
 ```
 t -e
 ```
+9) Get a count of pending tasks
+
+```
+t -n
+```
+
+10) Change Shell prompt to always show number of pending taks
+
+```
+t -S "$PS1" >> ~/.bash_profile
+```
 
 # License
 
