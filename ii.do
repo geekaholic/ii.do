@@ -26,7 +26,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:en" opt; do
+while getopts ":f:S:en" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -48,6 +48,11 @@ while getopts ":f:en" opt; do
 			ACTION='num'
 			;;
 
+		S )
+			# Return PS1
+			ACTION='ps1'
+			PS="$OPTARG"
+			;;
 
 		\? )
 			echo "Invalid option: -$OPTARG" >&2
@@ -116,15 +121,23 @@ function colorize() {
 
 	while read INP
 	do
-		echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
-		| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
-		| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
-		| sed "s/^\*${SP}\((.*).*\)/*\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
-		| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/" \
-		| sed "s/\([\`]\{1,\}.*[\`]\{1,\}\)/\\${COLOR_EM}\1\\${COLOR0}/" \
-		| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/")"
+		case "$ACTION" in
 
+		ls )
+			echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
+			| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
+			| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
+			| sed "s/^\*${SP}\((.*).*\)/*\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
+			| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/" \
+			| sed "s/\([\`]\{1,\}.*[\`]\{1,\}\)/\\${COLOR_EM}\1\\${COLOR0}/" \
+			| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/")"
+		;;
 
+		ps1 )
+			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\033[0;31m\[$\1\\033[0;0m!')"
+		;;
+
+		esac
 	done
 }
 
@@ -133,6 +146,18 @@ function count_todo_list() {
 	SP='[ ]\{1,\}'	# Match one or more spaces
 	N=$(get_todo_list | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
         echo $N
+}
+
+# Returns modified PS1 which contains pending tasks
+function get_PS1() {
+	
+	if ! $(echo -n $PS|grep -q "$0");then
+		PS1=$(echo -n "$PS"|sed "s!\([\\]\{0,1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
+		echo "export PS1='$PS1'"
+	else
+		echo '$PS1 already modified' 1>&2
+		exit 1
+	fi
 }
 
 # Take action
@@ -151,6 +176,11 @@ case "$ACTION" in
 	num )
 		# Count tasks
 		count_todo_list
+	;;
+
+	ps1 )
+		# Help to change $PS1
+		get_PS1 | sed 's!\\!\\\\!g' | colorize
 	;;
 
 
