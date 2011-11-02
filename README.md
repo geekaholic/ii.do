@@ -1,6 +1,6 @@
 # About ii.do
 
-ii.do, pronounced eye-do is a simple bash to-do script which can be used to keep track of a todo list.
+ii.do, pronounced I-do (as in "Do you solemnly swear to complete all tasks till death do us part?" :-), is a simple bash script which can be used to keep track of a todo list.
 
 After being inspired by the simplicity of [Markdown syntax](http://daringfireball.net/projects/markdown/syntax) and [Todo.txt](http://todotxt.com/), a commandline todo script, I decided to write my own script that combined both aspects.
 
