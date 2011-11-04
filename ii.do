@@ -58,7 +58,10 @@ while getopts ":f:S:enxX" opt; do
 			# Return Completed
 			ACTION='com'
 			;;
-
+		X )
+			# Return Pending
+			ACTION='pen'
+			;;
 
 		\? )
 			echo "Invalid option: -$OPTARG" >&2
@@ -140,6 +143,18 @@ function get_todo_completed() {
 	echo
 }
 
+# Filters the list to return pending
+function get_todo_pending() {
+
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	while read INP
+	do
+		# Show NOT completed task
+		echo "$INP" | grep -v "^\*${SP}x${SP}"
+	done
+}
+
 # Colorize output
 function colorize() {
 
@@ -149,7 +164,7 @@ function colorize() {
 	do
 		case "$ACTION" in
 
-		ls | com )
+		ls | com | pen )
 			echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 			| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
 			| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
@@ -210,6 +225,11 @@ case "$ACTION" in
 		get_todo_list | get_todo_completed | colorize
 	;;
 
+	pen )
+		# Return pending tasks
+		clear
+		get_todo_list | get_todo_pending | colorize
+	;;
 
 	ps1 )
 		# Help to change $PS1
