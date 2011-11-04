@@ -26,7 +26,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:S:en" opt; do
+while getopts ":f:S:enxX" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -53,6 +53,12 @@ while getopts ":f:S:en" opt; do
 			ACTION='ps1'
 			PS="$OPTARG"
 			;;
+
+		x )
+			# Return Completed
+			ACTION='com'
+			;;
+
 
 		\? )
 			echo "Invalid option: -$OPTARG" >&2
@@ -114,6 +120,26 @@ function print_heading() {
 	echo "$ph_heading"
 }
 
+# Filters the list to return completed
+function get_todo_completed() {
+
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	while read INP
+	do
+		if  echo $INP | grep -q "$H1"; then
+			# Show heading
+			echo
+			echo "$INP"
+			echo
+		else
+			# Show completed task
+			echo "$INP" | grep "^\*${SP}x${SP}"
+		fi
+	done
+	echo
+}
+
 # Colorize output
 function colorize() {
 
@@ -123,7 +149,7 @@ function colorize() {
 	do
 		case "$ACTION" in
 
-		ls )
+		ls | com )
 			echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 			| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
 			| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
@@ -177,6 +203,13 @@ case "$ACTION" in
 		# Count tasks
 		count_todo_list
 	;;
+
+	com )
+		# Return completed tasks
+		clear
+		get_todo_list | get_todo_completed | colorize
+	;;
+
 
 	ps1 )
 		# Help to change $PS1
