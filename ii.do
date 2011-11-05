@@ -13,6 +13,7 @@ if [ ! $EDITOR ]; then
 fi
 
 ACTION='ls'		# Default action is to List tasks
+COLOR_ON=1		# By default we show  in color
 
 H1='#'
 COLOR0='\033[0m'	# Reset colors
@@ -26,7 +27,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:S:enxX" opt; do
+while getopts ":f:S:enxXC" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -52,6 +53,11 @@ while getopts ":f:S:enxX" opt; do
 			# Return PS1
 			ACTION='ps1'
 			PS="$OPTARG"
+			;;
+
+		C )
+			# Turn off color
+			COLOR_ON=0
 			;;
 
 		x )
@@ -206,8 +212,12 @@ case "$ACTION" in
 
 	ls )
 		#get_todo_list "$1"
-		clear
-		get_todo_list | colorize
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_todo_list | colorize
+		else
+			get_todo_list
+		fi
 	;;
 
 	ed )
@@ -221,19 +231,31 @@ case "$ACTION" in
 
 	com )
 		# Return completed tasks
-		clear
-		get_todo_list | get_todo_completed | colorize
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_todo_list | get_todo_completed | colorize
+		else
+			get_todo_list | get_todo_completed
+		fi
 	;;
 
 	pen )
 		# Return pending tasks
-		clear
-		get_todo_list | get_todo_pending | colorize
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_todo_list | get_todo_pending | colorize
+		else
+			get_todo_list | get_todo_pending
+		fi
 	;;
 
 	ps1 )
 		# Help to change $PS1
-		get_PS1 | sed 's!\\!\\\\!g' | colorize
+		if [ $COLOR_ON -eq 1 ];then
+			get_PS1 | sed 's!\\!\\\\!g' | colorize
+		else
+			get_PS1 | sed 's!\\!\\\\!g'
+		fi
 	;;
 
 
