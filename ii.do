@@ -4,6 +4,8 @@
 # Author : Buddhika Siddhisena <bud@thinkcube.com>
 # License : GPL v2
 
+# Version
+VERSION='0.2'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -27,7 +29,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:S:enxXC" opt; do
+while getopts ":f:S:enxXCh" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -67,6 +69,11 @@ while getopts ":f:S:enxXC" opt; do
 		X )
 			# Return Pending
 			ACTION='pen'
+			;;
+
+		h )
+			# Return Usage help
+			ACTION='hlp'
 			;;
 
 		\? )
@@ -256,6 +263,22 @@ case "$ACTION" in
 		else
 			get_PS1 | sed 's!\\!\\\\!g'
 		fi
+	;;
+
+	hlp )
+		# Usage
+		echo "Version: $VERSION"
+		echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [options]"
+		echo -e "\nSettings:"
+		echo -e " -e \t\t Open TODO file using \$EDITOR"
+		echo -e " -n \t\t Count number of tasks, pending by default"
+		echo -e " -X \t\t Filter to show only pending tasks"
+		echo -e " -x \t\t Filter to show only completed tasks"
+		echo -e " -C \t\t Don't colorize output (useful for piping)"
+		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
+		echo -e " -h \t\t Show this help screen"
+		echo -e "\nBy default, we expect a ~/todo.markdown to be in your \$HOME if not overridden \nby the -f option. Refer to http://github.com/geekaholic/ii.do for examples of \ncreating this file.\n"
+
 	;;
 
 
