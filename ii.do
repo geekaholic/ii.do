@@ -16,6 +16,7 @@ fi
 
 ACTION='ls'		# Default action is to List tasks
 COLOR_ON=1		# By default we show  in color
+COUNT_ON=0		# Used to track -n option with other options
 
 H1='#'
 COLOR0='\033[0m'	# Reset colors
@@ -48,7 +49,7 @@ while getopts ":f:S:enxXCh" opt; do
 
 		n )
 			# Count tasks 
-			ACTION='num'
+			COUNT_ON=1
 			;;
 
 		S )
@@ -198,7 +199,22 @@ function colorize() {
 # Count the number of pending tasks
 function count_todo_list() {
 	SP='[ ]\{1,\}'	# Match one or more spaces
-	N=$(get_todo_list | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
+
+	# Adapt count based on other actions or default to pending tasks
+	case "$ACTION" in
+
+	com )
+		# Completed task count
+		N=$(get_todo_list | get_todo_completed | grep '^[^#]' | grep "^\*${SP}x${SP}" | wc -l)
+	;;
+
+
+	pen | * )
+		N=$(get_todo_list | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
+	;;
+
+	esac
+
         echo $N
 }
 
@@ -213,6 +229,12 @@ function get_PS1() {
 		exit 1
 	fi
 }
+
+# Handle counting of tasks
+if [ $COUNT_ON -eq 1 ];then
+	count_todo_list
+	exit 0
+fi
 
 # Take action
 case "$ACTION" in
@@ -229,11 +251,6 @@ case "$ACTION" in
 
 	ed )
 		$EDITOR $TODO_FILE
-	;;
-
-	num )
-		# Count tasks
-		count_todo_list
 	;;
 
 	com )
@@ -271,7 +288,7 @@ case "$ACTION" in
 		echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [options]"
 		echo -e "\nSettings:"
 		echo -e " -e \t\t Open TODO file using \$EDITOR"
-		echo -e " -n \t\t Count number of tasks, pending by default"
+		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
 		echo -e " -X \t\t Filter to show only pending tasks"
 		echo -e " -x \t\t Filter to show only completed tasks"
 		echo -e " -C \t\t Don't colorize output (useful for piping)"
@@ -283,3 +300,5 @@ case "$ACTION" in
 
 
 esac
+
+exit 0
