@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.2'
+VERSION='0.3b'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -30,7 +30,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:S:enxXCh" opt; do
+while getopts ":f:S:enxXCht" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -75,6 +75,10 @@ while getopts ":f:S:enxXCh" opt; do
 		h )
 			# Return Usage help
 			ACTION='hlp'
+			;;
+		t )
+			# Return Topic
+			ACTION='top'
 			;;
 
 		\? )
@@ -169,6 +173,17 @@ function get_todo_pending() {
 	done
 }
 
+# Get list of topics
+function get_topics() {
+
+	i=0
+	grep "${H1}" $TODO_FILE | while read INP
+	do
+		i=$(expr $i + 1)
+		echo "$i: $INP"
+	done
+}
+
 # Colorize output
 function colorize() {
 
@@ -178,7 +193,15 @@ function colorize() {
 	do
 		case "$ACTION" in
 
-		ls | com | pen )
+		ps1 )
+			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\033[0;31m\[$\1\\033[0;0m!')"
+		;;
+
+		top )
+			echo -e "$(echo "$INP" | sed "s!\(^[0-9]\{1,\}:\)\(.*\)!\\${COLOR_DONE}\1\\${COLOR_H2}\2\\${COLOR0}!")"
+		;;
+
+		* )
 			echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 			| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
 			| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
@@ -186,10 +209,6 @@ function colorize() {
 			| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/" \
 			| sed "s/\([\`]\{1,\}.*[\`]\{1,\}\)/\\${COLOR_EM}\1\\${COLOR0}/" \
 			| sed "s/\*\(.*\)/\\${COLOR_DOT}*\\$COLOR0\1/")"
-		;;
-
-		ps1 )
-			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\033[0;31m\[$\1\\033[0;0m!')"
 		;;
 
 		esac
@@ -282,6 +301,16 @@ case "$ACTION" in
 		fi
 	;;
 
+	top )
+		# Return topics, aka Headings
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_topics | colorize
+		else
+			get_topics
+		fi
+	;;
+
 	hlp )
 		# Usage
 		echo "Version: $VERSION"
@@ -291,6 +320,7 @@ case "$ACTION" in
 		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
 		echo -e " -X \t\t Filter to show only pending tasks"
 		echo -e " -x \t\t Filter to show only completed tasks"
+		echo -e " -t \t\t Filter to show only topics"
 		echo -e " -C \t\t Don't colorize output (useful for piping)"
 		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
 		echo -e " -h \t\t Show this help screen"
