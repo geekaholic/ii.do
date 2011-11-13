@@ -30,7 +30,7 @@ COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis 
 
 # Get options
-while getopts ":f:S:enxXCht" opt; do
+while getopts ":f:S:T:enxXCht" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -81,13 +81,19 @@ while getopts ":f:S:enxXCht" opt; do
 			ACTION='top'
 			;;
 
+		T )
+			# Filter by Topic number
+			ACTION='ftop'
+			TOPIC_NO="$OPTARG"
+			;;
+
 		\? )
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1
 			;;
 
 		: )
-			echo "Option -$OPTARG requires an argument">&2
+			echo "Option -$OPTARG requires an argument" >&2
 			exit 1
 			;;
 	esac
@@ -184,6 +190,29 @@ function get_topics() {
 	done
 }
 
+# Get list of tasks filtered by topic
+function get_filterd_todo_list() {
+
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	if ! [[ "$TOPIC_NO" =~ ^[0-9]+$ ]];then
+		echo "Topic must be an integer that represents the topic number. Use -t to findout." >&2
+		exit 1
+	fi
+
+	# Find out topic name corresponding to number
+	TOPIC=$(get_topics | grep "${TOPIC_NO}:" | sed "s/^[0-9]\{1,\}:${SP}//")
+
+	if ! [ "$TOPIC" ];then
+		echo "No topic matching your topic number. Use -t to findout." >&2
+		exit 1
+	fi
+
+	# Get todo list,  while filtering by topic
+	get_todo_list "$TOPIC"
+
+}
+
 # Colorize output
 function colorize() {
 
@@ -244,7 +273,7 @@ function get_PS1() {
 		PS1=$(echo -n "$PS"|sed "s!\([\\]\{0,1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
 		echo "export PS1='$PS1'"
 	else
-		echo '$PS1 already modified' 1>&2
+		echo '$PS1 already modified' >&2
 		exit 1
 	fi
 }
@@ -259,7 +288,6 @@ fi
 case "$ACTION" in
 
 	ls )
-		#get_todo_list "$1"
 		if [ $COLOR_ON -eq 1 ];then
 			clear
 			get_todo_list | colorize
@@ -311,6 +339,16 @@ case "$ACTION" in
 		fi
 	;;
 
+	ftop )
+		# Return tasks under current & sub topics only
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_filterd_todo_list | colorize
+		else
+			get_filterd_todo_list
+		fi
+	;;
+
 	hlp )
 		# Usage
 		echo "Version: $VERSION"
@@ -320,7 +358,8 @@ case "$ACTION" in
 		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
 		echo -e " -X \t\t Filter to show only pending tasks"
 		echo -e " -x \t\t Filter to show only completed tasks"
-		echo -e " -t \t\t Filter to show only topics"
+		echo -e " -t \t\t Filter to show only topics with topic_number"
+		echo -e " -T topic_number Filter to show tasks belonging to topic"
 		echo -e " -C \t\t Don't colorize output (useful for piping)"
 		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
 		echo -e " -h \t\t Show this help screen"
