@@ -17,6 +17,7 @@ fi
 ACTION='ls'		# Default action is to List tasks
 COLOR_ON=1		# By default we show  in color
 COUNT_ON=0		# Used to track -n option with other options
+TOPIC=''		# Used to filter by topic name
 
 H1='#'
 COLOR0='\033[0m'	# Reset colors
@@ -28,82 +29,6 @@ COLOR_DONE='\033[9;37m'	# Light gray
 COLOR_IMPORTANT='\033[1;31m' # Red for important
 COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
 COLOR_EM='\033[7m'	# Reverse for emphasis 
-
-# Get options
-while getopts ":f:S:T:enxXCht" opt; do
-	case $opt in
-		f ) 
-			if [ -f "$OPTARG" ];then
-				# Replace with -f file 
-				TODO_FILE="$OPTARG"
-			else
-				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
-				exit 1
-			fi
-			;;
-
-		e )
-			# Edit todo
-			ACTION='ed'
-			;;
-
-		n )
-			# Count tasks 
-			COUNT_ON=1
-			;;
-
-		S )
-			# Return PS1
-			ACTION='ps1'
-			PS="$OPTARG"
-			;;
-
-		C )
-			# Turn off color
-			COLOR_ON=0
-			;;
-
-		x )
-			# Return Completed
-			ACTION='com'
-			;;
-		X )
-			# Return Pending
-			ACTION='pen'
-			;;
-
-		h )
-			# Return Usage help
-			ACTION='hlp'
-			;;
-		t )
-			# Return Topic
-			ACTION='top'
-			;;
-
-		T )
-			# Filter by Topic number
-			ACTION='ftop'
-			TOPIC_NO="$OPTARG"
-			;;
-
-		\? )
-			echo "Invalid option: -$OPTARG" >&2
-			exit 1
-			;;
-
-		: )
-			echo "Option -$OPTARG requires an argument" >&2
-			exit 1
-			;;
-	esac
-done
-
-# Check if todo file exists
-if [ ! -f "$TODO_FILE" ];then
-	echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
-	exit 1
-fi
 
 # Get a list of todos for a given heading else show all
 function get_todo_list() {
@@ -190,10 +115,12 @@ function get_topics() {
 	done
 }
 
-# Get list of tasks filtered by topic
-function get_filterd_todo_list() {
+# Get the topic name, given id
+function get_topic_byid() {
 
 	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	TOPIC_NO="$1"
 
 	if ! [[ "$TOPIC_NO" =~ ^[0-9]+$ ]];then
 		echo "Topic must be an integer that represents the topic number. Use -t to findout." >&2
@@ -208,9 +135,7 @@ function get_filterd_todo_list() {
 		exit 1
 	fi
 
-	# Get todo list,  while filtering by topic
-	get_todo_list "$TOPIC"
-
+	echo "$TOPIC"
 }
 
 # Colorize output
@@ -253,12 +178,12 @@ function count_todo_list() {
 
 	com )
 		# Completed task count
-		N=$(get_todo_list | get_todo_completed | grep '^[^#]' | grep "^\*${SP}x${SP}" | wc -l)
+		N=$(get_todo_list "$TOPIC" | get_todo_completed | grep '^[^#]' | grep "^\*${SP}x${SP}" | wc -l)
 	;;
 
 
-	pen | * )
-		N=$(get_todo_list | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
+	* )
+		N=$(get_todo_list "$TOPIC" | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
 	;;
 
 	esac
@@ -278,6 +203,82 @@ function get_PS1() {
 	fi
 }
 
+#############################################################
+# Begin:  Get options
+while getopts ":f:S:T:enxXCht" opt; do
+	case $opt in
+		f ) 
+			if [ -f "$OPTARG" ];then
+				# Replace with -f file 
+				TODO_FILE="$OPTARG"
+			else
+				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+				exit 1
+			fi
+			;;
+
+		e )
+			# Edit todo
+			ACTION='ed'
+			;;
+
+		n )
+			# Count tasks 
+			COUNT_ON=1
+			;;
+
+		S )
+			# Return PS1
+			ACTION='ps1'
+			PS="$OPTARG"
+			;;
+
+		C )
+			# Turn off color
+			COLOR_ON=0
+			;;
+
+		x )
+			# Return Completed
+			ACTION='com'
+			;;
+		X )
+			# Return Pending
+			ACTION='pen'
+			;;
+
+		h )
+			# Return Usage help
+			ACTION='hlp'
+			;;
+		t )
+			# Return Topic
+			ACTION='top'
+			;;
+
+		T )
+			# Filter by Topic number
+			TOPIC=$(get_topic_byid "$OPTARG")
+			;;
+
+		\? )
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+
+		: )
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
+
+# Check if todo file exists
+if [ ! -f "$TODO_FILE" ];then
+	echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+	exit 1
+fi
+
 # Handle counting of tasks
 if [ $COUNT_ON -eq 1 ];then
 	count_todo_list
@@ -290,9 +291,9 @@ case "$ACTION" in
 	ls )
 		if [ $COLOR_ON -eq 1 ];then
 			clear
-			get_todo_list | colorize
+			get_todo_list "$TOPIC" | colorize
 		else
-			get_todo_list
+			get_todo_list "$TOPIC"
 		fi
 	;;
 
@@ -304,9 +305,9 @@ case "$ACTION" in
 		# Return completed tasks
 		if [ $COLOR_ON -eq 1 ];then
 			clear
-			get_todo_list | get_todo_completed | colorize
+			get_todo_list "$TOPIC" | get_todo_completed | colorize
 		else
-			get_todo_list | get_todo_completed
+			get_todo_list "$TOPIC" | get_todo_completed
 		fi
 	;;
 
@@ -314,9 +315,9 @@ case "$ACTION" in
 		# Return pending tasks
 		if [ $COLOR_ON -eq 1 ];then
 			clear
-			get_todo_list | get_todo_pending | colorize
+			get_todo_list "$TOPIC" | get_todo_pending | colorize
 		else
-			get_todo_list | get_todo_pending
+			get_todo_list "$TOPIC" | get_todo_pending
 		fi
 	;;
 
@@ -339,27 +340,16 @@ case "$ACTION" in
 		fi
 	;;
 
-	ftop )
-		# Return tasks under current & sub topics only
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_filterd_todo_list | colorize
-		else
-			get_filterd_todo_list
-		fi
-	;;
-
 	hlp )
 		# Usage
 		echo "Version: $VERSION"
-		echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [options]"
-		echo -e "\nSettings:"
+		echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [-T topic_number] [options]"
+		echo -e "\nOptions :"
 		echo -e " -e \t\t Open TODO file using \$EDITOR"
 		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
 		echo -e " -X \t\t Filter to show only pending tasks"
 		echo -e " -x \t\t Filter to show only completed tasks"
 		echo -e " -t \t\t Filter to show only topics with topic_number"
-		echo -e " -T topic_number Filter to show tasks belonging to topic"
 		echo -e " -C \t\t Don't colorize output (useful for piping)"
 		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
 		echo -e " -h \t\t Show this help screen"
