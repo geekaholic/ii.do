@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.4'
+VERSION='0.5'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -20,6 +20,8 @@ COUNT_ON=0		# Used to track -n option with other options
 TOPIC=''		# Used to filter by topic name
 
 H1='#'
+H1_ALT='=='		# Alternatively we could use a series of ====
+H2_ALT='\-\-'		# Altenatively we could use a series of ---
 COLOR0='\033[0m'	# Reset colors
 COLOR_H1='\033[4;35m'	# Purple for H1
 COLOR_H2='\033[1;35m'	# Purple for H2
@@ -35,7 +37,6 @@ function get_todo_list() {
 	# Get heading
 	heading="$1"
 
-
 	# Figure out level of heading 
 	if  echo $heading | grep -q "$H1$H1"; then
 		heading_level='2'
@@ -48,9 +49,22 @@ function get_todo_list() {
 
 	if [ "$heading" ]; then
 		# Display heading and subheadings
-		print_heading "$heading" "$heading_level"
+		echo ''	# Insert a Blank line
 
-			sed -n "/^[ ]*$H1\{1,$heading_level\}[ ]*$heading/, /^$H1\{1,$heading_level\}[ ]/p" $TODO_FILE | grep -v "^$H1\{1,$heading_level\}[ ]\+"
+		# Figure out the name of next heading with same level
+		next_heading=$(get_topics | sed -n -e 's/[^#]\{1,\}//' -e "/$heading/, /^$H1\{1,$heading_level\}[ ]\{1,\}/p"|tail -n 1|sed "s/$H1\{1,$heading_level\}//")
+
+		# Find line number of topic and next topic
+		line_num1=$(grep -n "$(echo $heading)" $TODO_FILE| sed -e 's/\:.*//')
+		line_num2=$(grep -n "$(echo $next_heading)" $TODO_FILE | sed -e 's/\:.*//')
+
+		if [ $line_num2 -gt $line_num1 ];then
+			# Show only between the two lines
+			sed -n $line_num1,$(expr $line_num2 - 1)p $TODO_FILE
+		else
+			# Show from line to EOF
+			sed -n $(expr $line_num1),\$p $TODO_FILE
+		fi
 	else
 		# Display everything!
 		cat $TODO_FILE
@@ -79,14 +93,19 @@ function get_todo_completed() {
 
 	while read INP
 	do
-		if  echo $INP | grep -q "$H1"; then
+
+		if  echo "$INP" | grep -q '^[^ \*]\+'; then
 			# Show heading
-			echo
+			if echo "$INP" | grep -i -q '[a-z0-9\#]';then
+				# Insert blank line before heading if not a --- or ===
+				echo 
+			fi
 			echo "$INP"
-			echo
-		else
+		elif echo "$INP" | grep -q "^\* "; then
 			# Show completed task
 			echo "$INP" | grep "^\*${SP}x${SP}"
+		else
+			echo 
 		fi
 	done
 	echo
@@ -108,10 +127,26 @@ function get_todo_pending() {
 function get_topics() {
 
 	i=0
-	grep "${H1}" $TODO_FILE | while read INP
+	PREV_INP=''	# Keep previous input
+
+	grep -v '^*' $TODO_FILE | while read INP
 	do
-		i=$(expr $i + 1)
-		echo "$i: $INP"
+		if echo $INP | grep -q "$H1"; then
+			# Hash Style heading
+			i=$(expr $i + 1)
+			echo "$i: $INP"
+		elif echo $INP | grep -q "$H1_ALT"; then
+			# Alt H1 ===  used, normalize to hash style
+			i=$(expr $i + 1)
+			echo "$i: ${H1} $PREV_INP"
+		elif echo $INP | grep -q "$H2_ALT"; then
+			# Alt H2 ---  used, normalize to hash style
+			i=$(expr $i + 1)
+			echo "$i: ${H1}${H1} $PREV_INP"
+		fi
+
+		PREV_INP="$INP"
+		
 	done
 }
 
@@ -178,12 +213,13 @@ function count_todo_list() {
 
 	com )
 		# Completed task count
-		N=$(get_todo_list "$TOPIC" | get_todo_completed | grep '^[^#]' | grep "^\*${SP}x${SP}" | wc -l)
+		N=$(get_todo_list "$TOPIC" | get_todo_completed | grep "^\*${SP}x${SP}" | wc -l)
 	;;
 
 
 	* )
-		N=$(get_todo_list "$TOPIC" | grep '^[^#]' | grep -v "^\*${SP}x${SP}" | wc -l)
+		# Pending task count
+		N=$(get_todo_list "$TOPIC" | grep '^\*' | grep -v "^\*${SP}x${SP}" | wc -l)
 	;;
 
 	esac
