@@ -193,6 +193,8 @@ function colorize() {
 		* )
 			echo -e "$(echo "$INP" | sed "s/^#\([^\#]\{1,\}\)/\\${COLOR_H1}#\1\\${COLOR0}/" \
 			| sed "s/^##\(.*\)/\\${COLOR_H2}##\1\\${COLOR0}/" \
+			| sed "s/^\([=-].*\)/\\${COLOR_H2}\1\\${COLOR0}/" \
+			| sed "s/^\([a-zA-Z0-9].*\)/\\${COLOR_H2}\1\\${COLOR0}/" \
 			| sed "s/^\*${SP}x${SP}\(.*\)/*\\${COLOR_DONE} x \1\\${COLOR0}/" \
 			| sed "s/^\*${SP}\((.*).*\)/*\\${COLOR_PRIORITY} \1\\${COLOR0}/" \
 			| sed "s/\ ! \(.*\)/\\${COLOR_IMPORTANT} ! \1\\${COLOR0}/" \
