@@ -342,6 +342,7 @@ EOT
 		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><del>\1<\/del><\/li>/" \
 		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\">\1<\/li>/" \
 		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><em>\1<\/em><\/li>/" \
+		| sed "s/[\`]\{1,\}\(.*\)[\`]\{1,\}/<code>\1<\/code>/" \
 		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\">\1<\/li>/"
 
 		PREV_INP="$INP"
