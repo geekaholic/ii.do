@@ -316,13 +316,6 @@ del {
 EOT
 	while read INP
 	do
-		echo "$INP" | sed "s/^${H1}[ ]*\([^${H1}]\{1,\}\)/<h1>\1<\/h1>/" \
-		| sed "s/^${H1}${H1}[ ]*\(.*\)/<h2>\1<\/h2>/" \
-		| sed "s/^[a-zA-Z${H1_ALT}${H2_ALT}].*//" \
-		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><del>\1<\/del><\/li>/" \
-		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\">\1<\/li>/" \
-		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><em>\1<\/em><\/li>/" \
-		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\">\1<\/li>/"
 
 		if echo "$PREV_INP" | grep -q "^[${H1}${H1_ALT}${H2_ALT}]"; then
 			# Detected a begining of a list
@@ -342,6 +335,14 @@ EOT
 			# Detect an alternate heading 2 -----
 			echo "<h2>$PREV_INP</h2>"
 		fi
+
+		echo "$INP" | sed "s/^${H1}[ ]*\([^${H1}]\{1,\}\)/<h1>\1<\/h1>/" \
+		| sed "s/^${H1}${H1}[ ]*\(.*\)/<h2>\1<\/h2>/" \
+		| sed "s/^[a-zA-Z${H1_ALT}${H2_ALT}].*//" \
+		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><del>\1<\/del><\/li>/" \
+		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\">\1<\/li>/" \
+		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><em>\1<\/em><\/li>/" \
+		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\">\1<\/li>/"
 
 		PREV_INP="$INP"
 	done
