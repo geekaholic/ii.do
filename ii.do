@@ -250,21 +250,79 @@ function htmlize() {
 cat <<EOT
 <!DOCTYPE html>
 <html>
-    <head>
-    <title>$(basename "$TODO_FILE")</title>
-    <link rel="stylesheet" href="css/main.css" type="text/css" />
-    </head>
+	<head>
+	<title>$(basename "$TODO_FILE")</title>
+	<style type="text/css">
 
-    <body>
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    font-size: 12px;
+}
+
+h1 {
+    font-weight: 100;
+    font-size: 62px;
+    margin: 20px 0;
+}
+
+h2 {
+    font-weight: 100;
+    font-size: 42px;
+    margin: 20px 0;
+}
+
+ul {
+    margin: 15px;
+    padding: 0;
+    width: 500px;
+}
+
+ul li {
+    list-style-type: none;
+    font-size: 24px;
+    background-color: #efefef;
+    margin-bottom: 5px;
+    padding: 10px;
+    text-align: left;
+}
+
+del {
+	color: #656565;
+}
+
+.important {
+	border-left-style: solid;
+	border-color: #cc0000;
+	border-width: 5px;
+}
+
+.priority {
+	border-left-style: solid;
+	border-color: #f88017;
+	border-width: 5px;
+}
+
+.completed {
+	border-left-style: solid;
+	border-color: #8afb17;
+	border-width: 5px;
+}
+
+	</style>
+	</head>
+
+<body>
 EOT
 	while read INP
 	do
 		echo "$INP" | sed "s/^${H1}[ ]*\([^${H1}]\{1,\}\)/<h1>\1<\/h1>/" \
 		| sed "s/^${H1}${H1}[ ]*\(.*\)/<h2>\1<\/h2>/" \
 		| sed "s/^[a-zA-Z${H1_ALT}${H2_ALT}].*//" \
-		| sed "s/^\*${SP}x${SP}\(.*\)/<li><del>\1<\/del><\/li>/" \
-		| sed "s/^\*${SP}!${SP}\(.*\)/<li><em>\1<\/em><\/li>/" \
-		| sed "s/^\*${SP}\(.*\)/<li>\1<\/li>/"
+		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><del>\1<\/del><\/li>/" \
+		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\">\1<\/li>/" \
+		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><em>\1<\/em><\/li>/" \
+		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\">\1<\/li>/"
 
 		if echo "$PREV_INP" | grep -q "^[${H1}${H1_ALT}${H2_ALT}]"; then
 			# Detected a begining of a list

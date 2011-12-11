@@ -12,6 +12,7 @@
 * Go bowling
 
 ## Excercise
+
 * ! Go to gym at least 3 days a week
 * Play some wii sports
 
