@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.5'
+VERSION='0.6'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -120,6 +120,41 @@ function get_todo_pending() {
 	do
 		# Show NOT completed task
 		echo "$INP" | grep -v "^\*${SP}x${SP}"
+	done
+}
+
+# Filters the list to return important
+function get_todo_important() {
+
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	while read INP
+	do
+
+		# Show NOT completed task
+		TASK=$(echo "$INP" | grep "^\*${SP}!${SP}")
+		if [ "$TASK" ];then
+			if echo "$HEADING" | grep -q "^H1"; then
+				echo "$HEADING"
+			else
+				echo "${HEADING_LEVEL} ${HEADING}"
+			fi
+
+			echo
+			echo "$TASK"
+		fi
+
+		# Capture heading & heading level
+		if echo "$INP" | grep -q "^[a-zA-Z$H1]"; then
+			HEADING=$(echo "$INP" | grep "^[a-zA-Z$H1]")
+		fi
+
+		if echo "$INP" | grep -q "^$H1_ALT"; then
+			HEADING_LEVEL="$H1"
+		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+			HEADING_LEVEL="${H1}${H1}"
+		fi
+
 	done
 }
 
@@ -243,7 +278,7 @@ function get_PS1() {
 
 #############################################################
 # Begin:  Get options
-while getopts ":f:S:T:enxXCht" opt; do
+while getopts ":f:S:T:enixXCht" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -283,6 +318,11 @@ while getopts ":f:S:T:enxXCht" opt; do
 		X )
 			# Return Pending
 			ACTION='pen'
+			;;
+
+		i )
+			# Return Important Tasks
+			ACTION='imp'
 			;;
 
 		h )
@@ -359,6 +399,17 @@ case "$ACTION" in
 		fi
 	;;
 
+	imp )
+		# Return important tasks
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_todo_list "$TOPIC" | get_todo_important | colorize
+		else
+			get_todo_list "$TOPIC" | get_todo_important
+		fi
+		
+	;;
+
 	ps1 )
 		# Help to change $PS1
 		if [ $COLOR_ON -eq 1 ];then
@@ -387,6 +438,7 @@ case "$ACTION" in
 		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
 		echo -e " -X \t\t Filter to show only pending tasks"
 		echo -e " -x \t\t Filter to show only completed tasks"
+		echo -e " -i \t\t Filter to show only important tasks"
 		echo -e " -t \t\t Filter to show only topics with topic_number"
 		echo -e " -C \t\t Don't colorize output (useful for piping)"
 		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
