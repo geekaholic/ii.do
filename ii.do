@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.6'
+VERSION='0.6.1'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -218,7 +218,7 @@ function colorize() {
 		case "$ACTION" in
 
 		ps1 )
-			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\033[0;31m\[$\1\\033[0;0m!')"
+			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\[\\033[0;31m\\]\[$\1\\[\\033[0;0m\\]!')"
 		;;
 
 		top )
