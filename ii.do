@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.6.1'
+VERSION='0.6.2'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
