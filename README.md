@@ -74,10 +74,15 @@ t -n
 ```
 t -S "$PS1" >> ~/.bash_profile
 ```
+For a complete set of options do `t-h`
+
+# See Also
+
+[My blog post with an embedded talk on ii.do](http://geekaholic.github.com/blog/2011/12/31/new-year-resolution-iido/)
 
 # License
 
 Copyright &copy; 2011 Buddhika Siddhisena
 
-Licensed under the GPL license v2
+Licensed under the [GPL license v2](http://www.gnu.org/licenses/gpl-2.0.html)
 
