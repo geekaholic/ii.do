@@ -218,7 +218,7 @@ function colorize() {
 		case "$ACTION" in
 
 		ps1 )
-			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)!\\[\\033[0;31m\\]\[$\1\\[\\033[0;0m\\]!')"
+			echo "$(echo "$INP" | sed 's!\[\$\(.*\]\)\\\$!\\[\\033[0;31m\\]\[$\1\\[\\033[0;0m\\]\\\$!')"
 		;;
 
 		top )
@@ -383,7 +383,7 @@ function count_todo_list() {
 function get_PS1() {
 	
 	if ! $(echo -n $PS|grep -q "$0");then
-		PS1=$(echo -n "$PS"|sed "s!\([\\]\{0,1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
+		PS1=$(echo -n "$PS"|sed "s!\([\\]\{1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
 		echo "export PS1='$PS1'"
 	else
 		echo '$PS1 already modified' >&2
@@ -535,7 +535,7 @@ case "$ACTION" in
 		if [ $COLOR_ON -eq 1 ];then
 			get_PS1 | sed 's!\\!\\\\!g' | colorize
 		else
-			get_PS1 | sed 's!\\!\\\\!g'
+			get_PS1 
 		fi
 	;;
 
