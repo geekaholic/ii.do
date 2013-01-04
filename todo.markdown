@@ -6,6 +6,7 @@
 * Wash Cloths
 * Clean the Room
 * Read a `Chapter` of from a Book
+* Finish essey by 06/15/2020
 
 ## Entertainment
 * Watch a Movie
