@@ -46,30 +46,37 @@ The result is a simple `todo.markdown` file which you can easily create in your 
 * (2) Then do Task 2
 ```
 
-6) To view tasks from anywhere define an alias in your ~/.bash_profile or ~/.bashrc
+6) Set a due date for a task by ending with "by mm/dd/yyyy"
+
+```
+* Task 1 by 12/31/2013
+
+```
+
+7) To view tasks from anywhere define an alias in your ~/.bash_profile or ~/.bashrc
 
 ```
 alias t='~/Downloads/ii.do/ii.do'
 ```
 
-7) To use a different todo file use the -f option with full path to the file.
+8) To use a different todo file use the -f option with full path to the file.
 
 ```
 alias t='~/Downloads/ii.do/ii.do -f ~/Dropbox/todo.md'
 ```
 
-8) To quickly launch the editor (vi by default, else $EDITOR) and edit the todo file
+9) To quickly launch the editor (vi by default, else $EDITOR) and edit the todo file
 
 ```
 t -e
 ```
-9) Get a count of pending tasks
+10) Get a count of pending tasks
 
 ```
 t -n
 ```
 
-10) Change Shell prompt to always show number of pending taks
+11) Change Shell prompt to always show number of pending taks
 
 ```
 t -S "$PS1" >> ~/.bash_profile
@@ -82,7 +89,7 @@ For a complete set of options do `t-h`
 
 # License
 
-Copyright &copy; 2011 Buddhika Siddhisena
+Copyright &copy; 2013 Buddhika Siddhisena
 
 Licensed under the [GPL license v2](http://www.gnu.org/licenses/gpl-2.0.html)
 

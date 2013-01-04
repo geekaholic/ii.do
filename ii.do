@@ -5,7 +5,7 @@
 # License : GPL v2
 
 # Version
-VERSION='0.6.2'
+VERSION='0.7.1'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -31,6 +31,10 @@ COLOR_DONE='\033[9;37m'	# Light gray
 COLOR_IMPORTANT='\033[1;31m' # Red for important
 COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
 COLOR_EM='\033[7m'	# Reverse for emphasis 
+
+# Used to filter by due dates
+START_DATE=''
+END_DATE=''
 
 # Get a list of todos for a given heading else show all
 function get_todo_list() {
@@ -156,6 +160,70 @@ function get_todo_important() {
 		fi
 
 	done
+}
+
+# Filters the list to return those due in the given date period
+function get_todo_due() {
+
+	# Convert start_date and end_date to epoch
+	START_DATE=$(echo $START_DATE | sed -e 's/[-\/]//g')
+	START_DATE=$(date -j "+%s" "$START_DATE")
+
+	if [ "$END_DATE" ];then
+		# If end due_date (range) was given then set that as epoch
+		END_DATE=$(echo $END_DATE | sed -e 's/[-\/]//g')
+		END_DATE=$(date -j "+%s" "$END_DATE")
+	fi
+
+	while read INP
+	do
+
+		if  echo "$INP" | grep -q -i 'by[ ]\{1,\}[0-9]\{1,2\}[-\/][0-9]\{1,2\}[-\/]2[0-9]\{3\}'; then
+			# Task may have a due date
+			DUE_DATE=$(echo "$INP" | sed -e 's/.*by[ ]\{1,\}\([0-9]\{1,2\}[-\/][0-9]\{1,2\}[-\/]2[0-9]\{3\}\)/\1/')
+			# Convert date to epoch
+			DUE_DATE=$(echo $DUE_DATE | sed -e 's/[-\/]//g')
+			DUE_DATE=$(date -j "+%s" "$DUE_DATE")
+
+			# Begin filtering based on due date
+			if [ ! "$END_DATE" ] && [ $START_DATE -eq $DUE_DATE ];then
+				# Print heading
+				if echo "$HEADING" | grep -q "^H1"; then
+					echo "$HEADING"
+				else
+					echo "${HEADING_LEVEL} ${HEADING}"
+				fi
+
+				# Exact due date match
+				echo "$INP"
+				echo
+			elif [ "$END_DATE" ] && [ $START_DATE -le $DUE_DATE ] && [ $END_DATE -ge $DUE_DATE ];then
+				# Print heading
+				if echo "$HEADING" | grep -q "^H1"; then
+					echo "$HEADING"
+				else
+					echo "${HEADING_LEVEL} ${HEADING}"
+				fi
+
+				# due date matches date range
+				echo "$INP"
+				echo
+			fi
+		fi
+
+		# Capture heading & heading level
+		if echo "$INP" | grep -q "^[a-zA-Z$H1]"; then
+			HEADING=$(echo "$INP" | grep "^[a-zA-Z$H1]")
+		fi
+
+		if echo "$INP" | grep -q "^$H1_ALT"; then
+			HEADING_LEVEL="$H1"
+		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+			HEADING_LEVEL="${H1}${H1}"
+		fi
+
+	done
+	echo
 }
 
 # Get list of topics
@@ -391,9 +459,32 @@ function get_PS1() {
 	fi
 }
 
+# Return help
+function show_help() {
+
+	# Usage
+	echo "Version: $VERSION"
+	echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [-T topic_number] [options]"
+	echo -e "\nOptions :"
+	echo -e " -e \t\t Open TODO file using \$EDITOR"
+	echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
+	echo -e " -X \t\t Filter to show only pending tasks"
+	echo -e " -x \t\t Filter to show only completed tasks"
+	echo -e " -i \t\t Filter to show only important tasks"
+	echo -e " -t \t\t Filter to show only topics with topic_number"
+	echo -e " -d \t\t Filter to show only topics with given due date (mm/dd/yyyy)"
+	echo -e " -D \t\t Filter to show only topics between -d due date and -D due date (mm/dd/yyyy)"
+	echo -e " -C \t\t Don't colorize output (useful for piping)"
+	echo -e " -H \t\t HTMLize the output"
+	echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
+	echo -e " -h \t\t Show this help screen"
+	echo -e "\nBy default, we expect a ~/todo.markdown to be in your \$HOME if not overridden \nby the -f option. Refer to http://github.com/geekaholic/ii.do for examples of \ncreating this file.\n"
+}
+
+
 #############################################################
 # Begin:  Get options
-while getopts ":f:S:T:enixXChtH" opt; do
+while getopts ":f:S:T:d:D:enixXChtH" opt; do
 	case $opt in
 		f ) 
 			if [ -f "$OPTARG" ];then
@@ -443,6 +534,18 @@ while getopts ":f:S:T:enixXChtH" opt; do
 		H )
 			# Return HTMLized Tasks
 			ACTION='htm'
+			;;
+
+		d )
+			# Sets due start_date 
+			START_DATE="$OPTARG"
+			ACTION='due'
+			;;
+
+		D )
+			# Sets due end_date 
+			END_DATE="$OPTARG"
+			ACTION='due'
 			;;
 
 		h )
@@ -554,23 +657,25 @@ case "$ACTION" in
 		get_todo_list | htmlize
 	;;
 
-	hlp )
-		# Usage
-		echo "Version: $VERSION"
-		echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [-T topic_number] [options]"
-		echo -e "\nOptions :"
-		echo -e " -e \t\t Open TODO file using \$EDITOR"
-		echo -e " -n \t\t Count number of pending tasks. Can be filtered using -x, -X etc."
-		echo -e " -X \t\t Filter to show only pending tasks"
-		echo -e " -x \t\t Filter to show only completed tasks"
-		echo -e " -i \t\t Filter to show only important tasks"
-		echo -e " -t \t\t Filter to show only topics with topic_number"
-		echo -e " -C \t\t Don't colorize output (useful for piping)"
-		echo -e " -H \t\t HTMLize the output"
-		echo -e " -S \"\$PS1\" \t Will return modified PS1 prompt to contain pending task count"
-		echo -e " -h \t\t Show this help screen"
-		echo -e "\nBy default, we expect a ~/todo.markdown to be in your \$HOME if not overridden \nby the -f option. Refer to http://github.com/geekaholic/ii.do for examples of \ncreating this file.\n"
+	due )
+		# Returns tasks due on date
 
+		# If not valid show help
+		if [ ! "$START_DATE" ] || [[ $START_DATE =~ [a-zA-Z] ]] || [[ $END_DATE =~ [a-zA-Z] ]];then
+			show_help
+			exit 1;
+		fi
+
+		if [ $COLOR_ON -eq 1 ];then
+			clear
+			get_todo_list "$TOPIC" | get_todo_due | colorize
+		else
+			get_todo_list "$TOPIC" | get_todo_due 
+		fi
+	;;
+
+	hlp )
+		show_help
 	;;
 
 
