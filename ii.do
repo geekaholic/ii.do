@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ii.do : A simple script which renders a TODO list written using Markdown syntax
-# Author : Buddhika Siddhisena <bud@thinkcube.com>
+# Author : Bud Siddhisena <bud@geekaholic.org>
 # License : GPL v2
 
 # Version
-VERSION='0.7.1'
+VERSION='0.8.0'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -353,10 +353,11 @@ ul li {
     margin-bottom: 5px;
     padding: 10px;
     text-align: left;
+	cursor: move;
 }
 
-del {
-	color: #656565;
+ul li span {
+	cursor: text;
 }
 
 .important {
@@ -375,12 +376,143 @@ del {
 	border-left-style: solid;
 	border-color: #8afb17;
 	border-width: 5px;
+	text-decoration: line-through;
+	color: #656565;
 }
 
+.pending {
+	border-left-style: solid;
+	border-color: #fbbb17;
+	border-width: 5px;
+}
+
+input[type=checkbox] {
+	float: right;
+}
+
+.button {
+	display: block;
+	width: 50px;
+	height: 50px;
+	border-radius: 50px;
+	font-size: 3em;
+	color: #fff;
+	line-height: 45px;
+	text-align: center;
+	text-decoration: none;
+	background: #888;
+}
+
+.button:hover {
+	color: #ccc;
+	text-decoration: none;
+	background: #333;
+}
+
+.addtask_button {
+	width: 35px !important;
+	height: 35px !important;
+	line-height: 25px !important;
+}
+
+.cleartask_button {
+	width: 35px !important;
+	height: 35px !important;
+	line-height: 33px !important;
+}
+
+
+#indicator {
+	width: 9em;
+	height: 2em;
+	line-height: 2em;
+	text-align: center;
+	background: #008800;
+	color: #fff;
+	display: none;
+}
+
+#indicator a {
+	text-decoration: none;
+	color: #fff;
+}
 	</style>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+\$(function() {
+
+	// Make task titles editable
+	\$(document).on('click', 'li span, h1, h2', function() {
+		\$(this).prop('contenteditable', true);
+		\$(this).focus();
+	});
+
+	// Perform an update to update new task 
+	\$(document).on('blur', 'li span, h1, h2', function() {
+		// Update local storage
+		save_iido();
+		return false;
+	});
+
+	// Handle completing tasks
+	\$(document).on('change', 'input[type=checkbox]', function() {
+		// Change UI to reflect task completion
+		if (\$(this).is(':checked')) {
+			\$(this).closest('li').removeClass('pending').addClass('completed');
+			\$(this).attr('checked', true);
+		} else {
+			\$(this).closest('li').removeClass('completed').addClass('pending');
+			\$(this).attr('checked', false);
+		}
+
+		// Update local storage
+		save_iido();
+		return false;
+	});
+
+	// Make tasks sortable
+	\$('ul').sortable({
+		stop: function() {
+			save_iido();
+		}
+	});
+
+	// Clear localstorage
+	\$(document).on('click', '#indicator a', function() {
+		localStorage.removeItem('iido');
+		location.reload();
+		return false;
+	});
+
+	// Try to restore from localstorage
+	restore_iido();
+
+});
+
+function save_iido()
+{
+	// Serialize body and save to localstorage
+	localStorage.setItem('iido', \$('body').html());
+}
+
+function restore_iido()
+{
+	// Restore from localstorage if exist
+	var html = localStorage.getItem('iido');
+	if (html != null) {
+		// Clear current body and replace
+		\$('body').empty();
+		\$('body').append(html);
+		\$('#indicator').show();
+	}
+}
+</script>
 	</head>
 
 <body>
+<div id="indicator"><a href="#" title="Clear Local Storage">Via Local Storage</a></div>
 EOT
 	while read INP
 	do
@@ -407,11 +539,11 @@ EOT
 		echo "$INP" | sed "s/^${H1}[ ]*\([^${H1}]\{1,\}\)/<h1>\1<\/h1>/" \
 		| sed "s/^${H1}${H1}[ ]*\(.*\)/<h2>\1<\/h2>/" \
 		| sed "s/^[a-zA-Z${H1_ALT}${H2_ALT}].*//" \
-		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><del>\1<\/del><\/li>/" \
-		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\">\1<\/li>/" \
-		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><em>\1<\/em><\/li>/" \
+		| sed "s/^\*${SP}x${SP}\(.*\)/<li class=\"completed\"><input type=\"checkbox\" checked=\"checked\" \/><span>\1<\/span><\/li>/" \
+		| sed "s/^\*${SP}\((.*).*\)/<li class=\"priority\"><input type=\"checkbox\" \/><span>\1<\/span><\/li>/" \
+		| sed "s/^\*${SP}!${SP}\(.*\)/<li class=\"important\"><input type=\"checkbox\" \/><span><em>\1<\/em><\/span><\/li>/" \
 		| sed "s/[\`]\{1,\}\(.*\)[\`]\{1,\}/<code>\1<\/code>/" \
-		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\">\1<\/li>/"
+		| sed "s/^\*${SP}\(.*\)/<li class=\"pending\"><input type=\"checkbox\" \/><span>\1<\/span><\/li>/"
 
 		PREV_INP="$INP"
 	done
