@@ -6,6 +6,17 @@ After being inspired by the simplicity of [Markdown syntax](http://daringfirebal
 
 The result is a simple `todo.markdown` file which you can easily create in your home directory and edit using any text editor (though I recommend one which has syntax highlighting such as VIM).
 
+# What's New (0.8.x)
+
+Improvements to HTML outputted version (using -H flag) includes:
+
+* Click on a heading or task to edit it inline in the browser
+* Sort tasks within it's task heading by dragging it
+* Tick the checkbox to mark the completion of a task
+* Changes are automatically saved to local storage
+* Indicate if what is showing on the HTML page is from local storage
+* Clear local storage by clicking on the indicator to revert to content of HTML page
+
 # Getting Started
 
 1) Create an empty todo.markdown file in your UNIX home directory or use my sample file.
@@ -81,6 +92,13 @@ t -n
 ```
 t -S "$PS1" >> ~/.bash_profile
 ```
+
+12) Export iido list as a self contained HTML file to email or track task completion locally
+
+```
+t -H > iido.html
+```
+
 For a complete set of options do `t-h`
 
 # See Also
