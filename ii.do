@@ -32,6 +32,8 @@ COLOR_IMPORTANT='\033[1;31m' # Red for important
 COLOR_PRIORITY='\033[1;33m' # Yellow for priority
 COLOR_EM='\033[7m'	# Reverse for emphasis
 
+SP='[ ]\{1,\}'	# Match one or more spaces
+
 # Used to filter by due dates
 START_DATE=''
 END_DATE=''
@@ -92,9 +94,6 @@ function print_heading() {
 
 # Filters the list to return completed
 function get_todo_completed() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 
@@ -117,9 +116,6 @@ function get_todo_completed() {
 
 # Filters the list to return pending
 function get_todo_pending() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 		# Show NOT completed task
@@ -129,9 +125,6 @@ function get_todo_pending() {
 
 # Filters the list to return important
 function get_todo_important() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 
@@ -164,7 +157,6 @@ function get_todo_important() {
 
 # Filters the list to return those due in the given date period
 function get_todo_due() {
-
 	# Convert start_date and end_date to epoch
 	START_DATE=$(echo $START_DATE | sed -e 's/[-\/]//g')
 	START_DATE=$(date -j "+%s" "$START_DATE")
@@ -228,7 +220,6 @@ function get_todo_due() {
 
 # Get list of topics
 function get_topics() {
-
 	i=0
 	PREV_INP=''	# Keep previous input
 
@@ -254,9 +245,6 @@ function get_topics() {
 
 # Get the topic name, given id
 function get_topic_byid() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	TOPIC_NO="$1"
 
 	if ! [[ "$TOPIC_NO" =~ ^[0-9]+$ ]];then
@@ -277,8 +265,7 @@ function get_topic_byid() {
 
 # Colorize output
 function colorize() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
+	clear
 
 	while read INP
 	do
@@ -310,9 +297,6 @@ function colorize() {
 
 # HTMLize output
 function htmlize() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 # Print html header
 cat <<EOT
 <!DOCTYPE html>
@@ -568,7 +552,6 @@ function get_PS1() {
 
 # Return help
 function show_help() {
-
 	# Usage
 	echo "Version: $VERSION"
 	echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [-T topic_number] [options]"
@@ -591,57 +574,38 @@ function show_help() {
 # Process action
 function process_action() {
 	action="$1"
-	color_on=$2
 
 	case "$action" in
 
 		ls )
-			if [ $color_on -eq 1 ];then
-				clear
-				get_todo_list "$TOPIC" | colorize
-			else
-				get_todo_list "$TOPIC"
-			fi
+			# Return all tasks
+			get_todo_list "$TOPIC"
 		;;
 
 		ed )
+			# Open file in editor
 			$EDITOR $TODO_FILE
 		;;
 
 		com )
 			# Return completed tasks
-			if [ $color_on -eq 1 ];then
-				clear
-				get_todo_list "$TOPIC" | get_todo_completed | colorize
-			else
-				get_todo_list "$TOPIC" | get_todo_completed
-			fi
+			get_todo_list "$TOPIC" | get_todo_completed
 		;;
 
 		pen )
 			# Return pending tasks
-			if [ $color_on -eq 1 ];then
-				clear
-				get_todo_list "$TOPIC" | get_todo_pending | colorize
-			else
-				get_todo_list "$TOPIC" | get_todo_pending
-			fi
+			get_todo_list "$TOPIC" | get_todo_pending
 		;;
 
 		imp )
 			# Return important tasks
-			if [ $color_on -eq 1 ];then
-				clear
-				get_todo_list "$TOPIC" | get_todo_important | colorize
-			else
-				get_todo_list "$TOPIC" | get_todo_important
-			fi
+			get_todo_list "$TOPIC" | get_todo_important
 		;;
 
 		ps1 )
 			# Help to change $PS1
-			if [ $color_on -eq 1 ];then
-				get_PS1 | sed 's!\\!\\\\!g' | colorize
+			if [ $COLOR_ON -eq 1 ];then
+				get_PS1 | sed 's!\\!\\\\!g'
 			else
 				get_PS1
 			fi
@@ -649,12 +613,7 @@ function process_action() {
 
 		top )
 			# Return topics, aka Headings
-			if [ $color_on -eq 1 ];then
-				clear
-				get_topics | colorize
-			else
-				get_topics
-			fi
+			get_topics
 		;;
 
 		htm )
@@ -671,12 +630,7 @@ function process_action() {
 				exit 1;
 			fi
 
-			if [ $color_on -eq 1 ];then
-				clear
-				get_todo_list "$TOPIC" | get_todo_due | colorize
-			else
-				get_todo_list "$TOPIC" | get_todo_due
-			fi
+			get_todo_list "$TOPIC" | get_todo_due
 		;;
 
 		hlp )
@@ -689,14 +643,12 @@ function process_action() {
 
 # Count tasks
 function count_todo_list() {
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	# Adapt count based on other actions or default to pending tasks
 	case "$ACTION" in
 
 	ls|com|pen )
 		# Count all, completed or pending tasks
-		N=$(process_action $ACTION 0 | grep "^\*${SP}" | wc -l)
+		N=$(process_action $ACTION | grep "^\*${SP}" | wc -l)
 	;;
 
 	* )
@@ -725,6 +677,7 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 		e )
 			# Edit todo
 			ACTION='ed'
+			COLOR_ON=0
 			;;
 
 		n )
@@ -777,6 +730,7 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 		h )
 			# Return Usage help
 			ACTION='hlp'
+			COLOR_ON=0
 			;;
 		t )
 			# Return Topic
@@ -812,6 +766,11 @@ if [ $COUNT_ON -eq 1 ];then
 	exit 0
 fi
 
-process_action $ACTION $COLOR_ON
+# Process action
+if [ $COLOR_ON -eq 1 ]; then
+	process_action $ACTION | colorize
+else
+	process_action $ACTION
+fi
 
 exit 0
