@@ -107,7 +107,7 @@ For a complete set of options do `t-h`
 
 # License
 
-Copyright &copy; 2013 Buddhika Siddhisena
+Copyright &copy; 2018 Buddhika Siddhisena
 
-Licensed under the [GPL license v2](http://www.gnu.org/licenses/gpl-2.0.html)
+Licensed under [WTFPL](http://www.wtfpl.net/txt/copying)
 

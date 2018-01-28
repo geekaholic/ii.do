@@ -2,10 +2,10 @@
 
 # ii.do : A simple script which renders a TODO list written using Markdown syntax
 # Author : Bud Siddhisena <bud@geekaholic.org>
-# License : GPL v2
+# License : WTFPL (http://www.wtfpl.net/txt/copying)
 
 # Version
-VERSION='0.8.0'
+VERSION='0.8.1'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -29,8 +29,10 @@ COLOR2='\033[1;35m'	# Light Purple for H2
 COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[9;37m'	# Light gray
 COLOR_IMPORTANT='\033[1;31m' # Red for important
-COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
-COLOR_EM='\033[7m'	# Reverse for emphasis 
+COLOR_PRIORITY='\033[1;33m' # Yellow for priority
+COLOR_EM='\033[7m'	# Reverse for emphasis
+
+SP='[ ]\{1,\}'	# Match one or more spaces
 
 # Used to filter by due dates
 START_DATE=''
@@ -41,12 +43,12 @@ function get_todo_list() {
 	# Get heading
 	heading="$1"
 
-	# Figure out level of heading 
+	# Figure out level of heading
 	if  echo $heading | grep -q "$H1$H1"; then
 		heading_level='2'
 	else
 		heading_level='1'
-	fi 
+	fi
 
 	# Cleanup heading by removing level character
 	heading=$(echo $heading|sed "s/$H1\{1,$heading_level\}//")
@@ -75,7 +77,7 @@ function get_todo_list() {
 	fi
 }
 
-# Print heading 
+# Print heading
 function print_heading() {
 	ph_heading="$1"
 	ph_heading_level="$2"
@@ -85,16 +87,13 @@ function print_heading() {
 		$ph_heading_level='1'
 	fi
 
-	# Print heading level 
+	# Print heading level
 	for i in $(seq $ph_heading_level); do echo -n "$H1"; done
 	echo "$ph_heading"
 }
 
 # Filters the list to return completed
 function get_todo_completed() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 
@@ -102,14 +101,14 @@ function get_todo_completed() {
 			# Show heading
 			if echo "$INP" | grep -i -q '[a-z0-9\#]';then
 				# Insert blank line before heading if not a --- or ===
-				echo 
+				echo
 			fi
 			echo "$INP"
 		elif echo "$INP" | grep -q "^\* "; then
 			# Show completed task
 			echo "$INP" | grep "^\*${SP}x${SP}"
 		else
-			echo 
+			echo
 		fi
 	done
 	echo
@@ -117,9 +116,6 @@ function get_todo_completed() {
 
 # Filters the list to return pending
 function get_todo_pending() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 		# Show NOT completed task
@@ -129,9 +125,6 @@ function get_todo_pending() {
 
 # Filters the list to return important
 function get_todo_important() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	while read INP
 	do
 
@@ -155,7 +148,7 @@ function get_todo_important() {
 
 		if echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="$H1"
-		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+		elif echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="${H1}${H1}"
 		fi
 
@@ -164,7 +157,6 @@ function get_todo_important() {
 
 # Filters the list to return those due in the given date period
 function get_todo_due() {
-
 	# Convert start_date and end_date to epoch
 	START_DATE=$(echo $START_DATE | sed -e 's/[-\/]//g')
 	START_DATE=$(date -j "+%s" "$START_DATE")
@@ -218,7 +210,7 @@ function get_todo_due() {
 
 		if echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="$H1"
-		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+		elif echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="${H1}${H1}"
 		fi
 
@@ -228,7 +220,6 @@ function get_todo_due() {
 
 # Get list of topics
 function get_topics() {
-
 	i=0
 	PREV_INP=''	# Keep previous input
 
@@ -249,15 +240,11 @@ function get_topics() {
 		fi
 
 		PREV_INP="$INP"
-		
 	done
 }
 
 # Get the topic name, given id
 function get_topic_byid() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 	TOPIC_NO="$1"
 
 	if ! [[ "$TOPIC_NO" =~ ^[0-9]+$ ]];then
@@ -278,8 +265,7 @@ function get_topic_byid() {
 
 # Colorize output
 function colorize() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
+	clear
 
 	while read INP
 	do
@@ -311,9 +297,6 @@ function colorize() {
 
 # HTMLize output
 function htmlize() {
-
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
 # Print html header
 cat <<EOT
 <!DOCTYPE html>
@@ -449,7 +432,7 @@ input[type=checkbox] {
 		\$(this).focus();
 	});
 
-	// Perform an update to update new task 
+	// Perform an update to update new task
 	\$(document).on('blur', 'li span, h1, h2', function() {
 		// Update local storage
 		save_iido();
@@ -556,32 +539,8 @@ cat <<EOT
 EOT
 }
 
-# Count the number of pending tasks
-function count_todo_list() {
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
-	# Adapt count based on other actions or default to pending tasks
-	case "$ACTION" in
-
-	com )
-		# Completed task count
-		N=$(get_todo_list "$TOPIC" | get_todo_completed | grep "^\*${SP}x${SP}" | wc -l)
-	;;
-
-
-	* )
-		# Pending task count
-		N=$(get_todo_list "$TOPIC" | grep '^\*' | grep -v "^\*${SP}x${SP}" | wc -l)
-	;;
-
-	esac
-
-        echo $N
-}
-
 # Returns modified PS1 which contains pending tasks
 function get_PS1() {
-	
 	if ! $(echo -n $PS|grep -q "$0");then
 		PS1=$(echo -n "$PS"|sed "s!\([\\]\{1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
 		echo "export PS1='$PS1'"
@@ -593,7 +552,6 @@ function get_PS1() {
 
 # Return help
 function show_help() {
-
 	# Usage
 	echo "Version: $VERSION"
 	echo -e "\nUsage: $(basename $0) [-f todo_file.markdown] [-T topic_number] [options]"
@@ -613,28 +571,117 @@ function show_help() {
 	echo -e "\nBy default, we expect a ~/todo.markdown to be in your \$HOME if not overridden \nby the -f option. Refer to http://github.com/geekaholic/ii.do for examples of \ncreating this file.\n"
 }
 
+# Process action
+function process_action() {
+	action="$1"
+
+	case "$action" in
+
+		ls )
+			# Return all tasks
+			get_todo_list "$TOPIC"
+		;;
+
+		ed )
+			# Open file in editor
+			$EDITOR $TODO_FILE
+		;;
+
+		com )
+			# Return completed tasks
+			get_todo_list "$TOPIC" | get_todo_completed
+		;;
+
+		pen )
+			# Return pending tasks
+			get_todo_list "$TOPIC" | get_todo_pending
+		;;
+
+		imp )
+			# Return important tasks
+			get_todo_list "$TOPIC" | get_todo_important
+		;;
+
+		ps1 )
+			# Help to change $PS1
+			if [ $COLOR_ON -eq 1 ];then
+				get_PS1 | sed 's!\\!\\\\!g'
+			else
+				get_PS1
+			fi
+		;;
+
+		top )
+			# Return topics, aka Headings
+			get_topics
+		;;
+
+		htm )
+			# Return HTMLized topic list
+			get_todo_list | htmlize
+		;;
+
+		due )
+			# Returns tasks due on date
+
+			# If not valid show help
+			if [ ! "$START_DATE" ] || [[ $START_DATE =~ [a-zA-Z] ]] || [[ $END_DATE =~ [a-zA-Z] ]];then
+				show_help
+				exit 1;
+			fi
+
+			get_todo_list "$TOPIC" | get_todo_due
+		;;
+
+		hlp )
+			show_help
+		;;
+
+
+	esac
+}
+
+# Count tasks
+function count_todo_list() {
+	# Adapt count based on other actions or default to pending tasks
+	case "$ACTION" in
+
+	ls|com|pen )
+		# Count all, completed or pending tasks
+		N=$(process_action $ACTION | grep "^\*${SP}" | wc -l)
+	;;
+
+	* )
+		# Unknown or unsupported action
+		echo "Unsupported operation for counting." >&2
+		exit 1
+	;;
+
+	esac
+	echo $N
+}
 
 #############################################################
 # Begin:  Get options
 while getopts ":f:S:T:d:D:enixXChtH" opt; do
 	case $opt in
-		f ) 
+		f )
 			if [ -f "$OPTARG" ];then
-				# Replace with -f file 
+				# Replace with -f file
 				TODO_FILE="$OPTARG"
 			else
-				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
-				exit 1
+				TODO_FILE=""
 			fi
 			;;
 
 		e )
 			# Edit todo
 			ACTION='ed'
+			COLOR_ON=0
 			;;
 
 		n )
-			# Count tasks 
+			# Count tasks
 			COUNT_ON=1
 			;;
 
@@ -669,13 +716,13 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 			;;
 
 		d )
-			# Sets due start_date 
+			# Sets due start_date
 			START_DATE="$OPTARG"
 			ACTION='due'
 			;;
 
 		D )
-			# Sets due end_date 
+			# Sets due end_date
 			END_DATE="$OPTARG"
 			ACTION='due'
 			;;
@@ -683,6 +730,7 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 		h )
 			# Return Usage help
 			ACTION='hlp'
+			COLOR_ON=0
 			;;
 		t )
 			# Return Topic
@@ -708,7 +756,7 @@ done
 
 # Check if todo file exists
 if [ ! -f "$TODO_FILE" ];then
-	echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+	echo "Unable to find $TODO_FILE. Atleast touch a blank file!" >&2
 	exit 1
 fi
 
@@ -718,99 +766,11 @@ if [ $COUNT_ON -eq 1 ];then
 	exit 0
 fi
 
-# Take action
-case "$ACTION" in
-
-	ls )
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | colorize
-		else
-			get_todo_list "$TOPIC"
-		fi
-	;;
-
-	ed )
-		$EDITOR $TODO_FILE
-	;;
-
-	com )
-		# Return completed tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_completed | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_completed
-		fi
-	;;
-
-	pen )
-		# Return pending tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_pending | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_pending
-		fi
-	;;
-
-	imp )
-		# Return important tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_important | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_important
-		fi
-		
-	;;
-
-	ps1 )
-		# Help to change $PS1
-		if [ $COLOR_ON -eq 1 ];then
-			get_PS1 | sed 's!\\!\\\\!g' | colorize
-		else
-			get_PS1 
-		fi
-	;;
-
-	top )
-		# Return topics, aka Headings
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_topics | colorize
-		else
-			get_topics
-		fi
-	;;
-
-	htm )
-		# Return HTMLized topic list
-		get_todo_list | htmlize
-	;;
-
-	due )
-		# Returns tasks due on date
-
-		# If not valid show help
-		if [ ! "$START_DATE" ] || [[ $START_DATE =~ [a-zA-Z] ]] || [[ $END_DATE =~ [a-zA-Z] ]];then
-			show_help
-			exit 1;
-		fi
-
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_due | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_due 
-		fi
-	;;
-
-	hlp )
-		show_help
-	;;
-
-
-esac
+# Process action
+if [ $COLOR_ON -eq 1 ]; then
+	process_action $ACTION | colorize
+else
+	process_action $ACTION
+fi
 
 exit 0
