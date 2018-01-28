@@ -555,28 +555,6 @@ cat <<EOT
 EOT
 }
 
-# Count tasks
-function count_todo_list() {
-	SP='[ ]\{1,\}'	# Match one or more spaces
-
-	# Adapt count based on other actions or default to pending tasks
-	case "$ACTION" in
-
-	com )
-		# Completed task count
-		N=$(get_todo_list "$TOPIC" | get_todo_completed | grep "^\*${SP}x${SP}" | wc -l)
-	;;
-
-
-	* )
-		# Pending task count
-		N=$(get_todo_list "$TOPIC" | grep '^\*' | grep -v "^\*${SP}x${SP}" | wc -l)
-	;;
-
-	esac
-	echo $N
-}
-
 # Returns modified PS1 which contains pending tasks
 function get_PS1() {
 	if ! $(echo -n $PS|grep -q "$0");then
@@ -612,10 +590,13 @@ function show_help() {
 
 # Process action
 function process_action() {
-	case "$ACTION" in
+	action="$1"
+	color_on=$2
+
+	case "$action" in
 
 		ls )
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_todo_list "$TOPIC" | colorize
 			else
@@ -629,7 +610,7 @@ function process_action() {
 
 		com )
 			# Return completed tasks
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_todo_list "$TOPIC" | get_todo_completed | colorize
 			else
@@ -639,7 +620,7 @@ function process_action() {
 
 		pen )
 			# Return pending tasks
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_todo_list "$TOPIC" | get_todo_pending | colorize
 			else
@@ -649,7 +630,7 @@ function process_action() {
 
 		imp )
 			# Return important tasks
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_todo_list "$TOPIC" | get_todo_important | colorize
 			else
@@ -659,7 +640,7 @@ function process_action() {
 
 		ps1 )
 			# Help to change $PS1
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				get_PS1 | sed 's!\\!\\\\!g' | colorize
 			else
 				get_PS1
@@ -668,7 +649,7 @@ function process_action() {
 
 		top )
 			# Return topics, aka Headings
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_topics | colorize
 			else
@@ -690,7 +671,7 @@ function process_action() {
 				exit 1;
 			fi
 
-			if [ $COLOR_ON -eq 1 ];then
+			if [ $color_on -eq 1 ];then
 				clear
 				get_todo_list "$TOPIC" | get_todo_due | colorize
 			else
@@ -704,6 +685,28 @@ function process_action() {
 
 
 	esac
+}
+
+# Count tasks
+function count_todo_list() {
+	SP='[ ]\{1,\}'	# Match one or more spaces
+
+	# Adapt count based on other actions or default to pending tasks
+	case "$ACTION" in
+
+	ls|com|pen )
+		# Count all, completed or pending tasks
+		N=$(process_action $ACTION 0 | grep "^\*${SP}" | wc -l)
+	;;
+
+	* )
+		# Unknown or unsupported action
+		echo "Unsupported operation for counting." >&2
+		exit 1
+	;;
+
+	esac
+	echo $N
 }
 
 #############################################################
@@ -799,7 +802,7 @@ done
 
 # Check if todo file exists
 if [ ! -f "$TODO_FILE" ];then
-	echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
+	echo "Unable to find $TODO_FILE. Atleast touch a blank file!" >&2
 	exit 1
 fi
 
@@ -809,6 +812,6 @@ if [ $COUNT_ON -eq 1 ];then
 	exit 0
 fi
 
-process_action
+process_action $ACTION $COLOR_ON
 
 exit 0
