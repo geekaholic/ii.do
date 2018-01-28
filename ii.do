@@ -29,8 +29,8 @@ COLOR2='\033[1;35m'	# Light Purple for H2
 COLOR_DOT='\033[1;33m'	# Yellow for bullets
 COLOR_DONE='\033[9;37m'	# Light gray
 COLOR_IMPORTANT='\033[1;31m' # Red for important
-COLOR_PRIORITY='\033[1;33m' # Yellow for priority 
-COLOR_EM='\033[7m'	# Reverse for emphasis 
+COLOR_PRIORITY='\033[1;33m' # Yellow for priority
+COLOR_EM='\033[7m'	# Reverse for emphasis
 
 # Used to filter by due dates
 START_DATE=''
@@ -41,12 +41,12 @@ function get_todo_list() {
 	# Get heading
 	heading="$1"
 
-	# Figure out level of heading 
+	# Figure out level of heading
 	if  echo $heading | grep -q "$H1$H1"; then
 		heading_level='2'
 	else
 		heading_level='1'
-	fi 
+	fi
 
 	# Cleanup heading by removing level character
 	heading=$(echo $heading|sed "s/$H1\{1,$heading_level\}//")
@@ -75,7 +75,7 @@ function get_todo_list() {
 	fi
 }
 
-# Print heading 
+# Print heading
 function print_heading() {
 	ph_heading="$1"
 	ph_heading_level="$2"
@@ -85,7 +85,7 @@ function print_heading() {
 		$ph_heading_level='1'
 	fi
 
-	# Print heading level 
+	# Print heading level
 	for i in $(seq $ph_heading_level); do echo -n "$H1"; done
 	echo "$ph_heading"
 }
@@ -102,14 +102,14 @@ function get_todo_completed() {
 			# Show heading
 			if echo "$INP" | grep -i -q '[a-z0-9\#]';then
 				# Insert blank line before heading if not a --- or ===
-				echo 
+				echo
 			fi
 			echo "$INP"
 		elif echo "$INP" | grep -q "^\* "; then
 			# Show completed task
 			echo "$INP" | grep "^\*${SP}x${SP}"
 		else
-			echo 
+			echo
 		fi
 	done
 	echo
@@ -155,7 +155,7 @@ function get_todo_important() {
 
 		if echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="$H1"
-		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+		elif echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="${H1}${H1}"
 		fi
 
@@ -218,7 +218,7 @@ function get_todo_due() {
 
 		if echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="$H1"
-		elif echo "$INP" | grep -q "^$H1_ALT"; then 
+		elif echo "$INP" | grep -q "^$H1_ALT"; then
 			HEADING_LEVEL="${H1}${H1}"
 		fi
 
@@ -249,7 +249,6 @@ function get_topics() {
 		fi
 
 		PREV_INP="$INP"
-		
 	done
 }
 
@@ -449,7 +448,7 @@ input[type=checkbox] {
 		\$(this).focus();
 	});
 
-	// Perform an update to update new task 
+	// Perform an update to update new task
 	\$(document).on('blur', 'li span, h1, h2', function() {
 		// Update local storage
 		save_iido();
@@ -581,7 +580,6 @@ function count_todo_list() {
 
 # Returns modified PS1 which contains pending tasks
 function get_PS1() {
-	
 	if ! $(echo -n $PS|grep -q "$0");then
 		PS1=$(echo -n "$PS"|sed "s!\([\\]\{1\}\\$\)! \[\$("$0" -f "$TODO_FILE" -n)\]\1!")
 		echo "export PS1='$PS1'"
@@ -618,9 +616,9 @@ function show_help() {
 # Begin:  Get options
 while getopts ":f:S:T:d:D:enixXChtH" opt; do
 	case $opt in
-		f ) 
+		f )
 			if [ -f "$OPTARG" ];then
-				# Replace with -f file 
+				# Replace with -f file
 				TODO_FILE="$OPTARG"
 			else
 				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
@@ -634,7 +632,7 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 			;;
 
 		n )
-			# Count tasks 
+			# Count tasks
 			COUNT_ON=1
 			;;
 
@@ -669,13 +667,13 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 			;;
 
 		d )
-			# Sets due start_date 
+			# Sets due start_date
 			START_DATE="$OPTARG"
 			ACTION='due'
 			;;
 
 		D )
-			# Sets due end_date 
+			# Sets due end_date
 			END_DATE="$OPTARG"
 			ACTION='due'
 			;;
@@ -762,7 +760,6 @@ case "$ACTION" in
 		else
 			get_todo_list "$TOPIC" | get_todo_important
 		fi
-		
 	;;
 
 	ps1 )
@@ -770,7 +767,7 @@ case "$ACTION" in
 		if [ $COLOR_ON -eq 1 ];then
 			get_PS1 | sed 's!\\!\\\\!g' | colorize
 		else
-			get_PS1 
+			get_PS1
 		fi
 	;;
 
@@ -802,7 +799,7 @@ case "$ACTION" in
 			clear
 			get_todo_list "$TOPIC" | get_todo_due | colorize
 		else
-			get_todo_list "$TOPIC" | get_todo_due 
+			get_todo_list "$TOPIC" | get_todo_due
 		fi
 	;;
 
