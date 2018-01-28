@@ -2,10 +2,10 @@
 
 # ii.do : A simple script which renders a TODO list written using Markdown syntax
 # Author : Bud Siddhisena <bud@geekaholic.org>
-# License : GPL v2
+# License : WTFPL (http://www.wtfpl.net/txt/copying)
 
 # Version
-VERSION='0.8.0'
+VERSION='0.8.1'
 
 # Predefined constants
 TODO_FILE="$HOME/todo.markdown"
@@ -555,7 +555,7 @@ cat <<EOT
 EOT
 }
 
-# Count the number of pending tasks
+# Count tasks
 function count_todo_list() {
 	SP='[ ]\{1,\}'	# Match one or more spaces
 
@@ -574,8 +574,7 @@ function count_todo_list() {
 	;;
 
 	esac
-
-        echo $N
+	echo $N
 }
 
 # Returns modified PS1 which contains pending tasks
@@ -611,6 +610,101 @@ function show_help() {
 	echo -e "\nBy default, we expect a ~/todo.markdown to be in your \$HOME if not overridden \nby the -f option. Refer to http://github.com/geekaholic/ii.do for examples of \ncreating this file.\n"
 }
 
+# Process action
+function process_action() {
+	case "$ACTION" in
+
+		ls )
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_todo_list "$TOPIC" | colorize
+			else
+				get_todo_list "$TOPIC"
+			fi
+		;;
+
+		ed )
+			$EDITOR $TODO_FILE
+		;;
+
+		com )
+			# Return completed tasks
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_todo_list "$TOPIC" | get_todo_completed | colorize
+			else
+				get_todo_list "$TOPIC" | get_todo_completed
+			fi
+		;;
+
+		pen )
+			# Return pending tasks
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_todo_list "$TOPIC" | get_todo_pending | colorize
+			else
+				get_todo_list "$TOPIC" | get_todo_pending
+			fi
+		;;
+
+		imp )
+			# Return important tasks
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_todo_list "$TOPIC" | get_todo_important | colorize
+			else
+				get_todo_list "$TOPIC" | get_todo_important
+			fi
+		;;
+
+		ps1 )
+			# Help to change $PS1
+			if [ $COLOR_ON -eq 1 ];then
+				get_PS1 | sed 's!\\!\\\\!g' | colorize
+			else
+				get_PS1
+			fi
+		;;
+
+		top )
+			# Return topics, aka Headings
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_topics | colorize
+			else
+				get_topics
+			fi
+		;;
+
+		htm )
+			# Return HTMLized topic list
+			get_todo_list | htmlize
+		;;
+
+		due )
+			# Returns tasks due on date
+
+			# If not valid show help
+			if [ ! "$START_DATE" ] || [[ $START_DATE =~ [a-zA-Z] ]] || [[ $END_DATE =~ [a-zA-Z] ]];then
+				show_help
+				exit 1;
+			fi
+
+			if [ $COLOR_ON -eq 1 ];then
+				clear
+				get_todo_list "$TOPIC" | get_todo_due | colorize
+			else
+				get_todo_list "$TOPIC" | get_todo_due
+			fi
+		;;
+
+		hlp )
+			show_help
+		;;
+
+
+	esac
+}
 
 #############################################################
 # Begin:  Get options
@@ -621,8 +715,7 @@ while getopts ":f:S:T:d:D:enixXChtH" opt; do
 				# Replace with -f file
 				TODO_FILE="$OPTARG"
 			else
-				echo "Unable to find $TODO_FILE. Atleast touch a blank file!"
-				exit 1
+				TODO_FILE=""
 			fi
 			;;
 
@@ -716,98 +809,6 @@ if [ $COUNT_ON -eq 1 ];then
 	exit 0
 fi
 
-# Take action
-case "$ACTION" in
-
-	ls )
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | colorize
-		else
-			get_todo_list "$TOPIC"
-		fi
-	;;
-
-	ed )
-		$EDITOR $TODO_FILE
-	;;
-
-	com )
-		# Return completed tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_completed | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_completed
-		fi
-	;;
-
-	pen )
-		# Return pending tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_pending | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_pending
-		fi
-	;;
-
-	imp )
-		# Return important tasks
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_important | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_important
-		fi
-	;;
-
-	ps1 )
-		# Help to change $PS1
-		if [ $COLOR_ON -eq 1 ];then
-			get_PS1 | sed 's!\\!\\\\!g' | colorize
-		else
-			get_PS1
-		fi
-	;;
-
-	top )
-		# Return topics, aka Headings
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_topics | colorize
-		else
-			get_topics
-		fi
-	;;
-
-	htm )
-		# Return HTMLized topic list
-		get_todo_list | htmlize
-	;;
-
-	due )
-		# Returns tasks due on date
-
-		# If not valid show help
-		if [ ! "$START_DATE" ] || [[ $START_DATE =~ [a-zA-Z] ]] || [[ $END_DATE =~ [a-zA-Z] ]];then
-			show_help
-			exit 1;
-		fi
-
-		if [ $COLOR_ON -eq 1 ];then
-			clear
-			get_todo_list "$TOPIC" | get_todo_due | colorize
-		else
-			get_todo_list "$TOPIC" | get_todo_due
-		fi
-	;;
-
-	hlp )
-		show_help
-	;;
-
-
-esac
+process_action
 
 exit 0
